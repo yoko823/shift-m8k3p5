@@ -128,7 +128,7 @@ input.pin{font-size:22px;letter-spacing:6px;width:140px;text-align:center;paddin
 /* スマホは横向きの指定を無視して縦で印刷するので、スマホの「印刷する」では表を90度回して縦の用紙1枚に収める */
 @media print{
   body.rot,body.rot main{overflow:hidden}
-  body.rot .print-area{position:absolute;top:0;left:0;width:280mm;transform-origin:0 0;transform:translateX(196mm) rotate(90deg)}
+  body.rot .print-area{position:absolute;top:0;left:0;width:280mm;transform-origin:0 0;transform:translateX(168mm) rotate(90deg) scale(0.8)}
 }
 
 </style>
