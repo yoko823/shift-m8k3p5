@@ -289,7 +289,9 @@ async function staff() {
 
 function wantedHtml() {
   const d = S.data;
-  const list = d.shifts.filter(s => s.wanted && !s.name);
+  const t = new Date(); const today = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+  const list = d.shifts.filter(s => s.wanted && !s.name && s.date >= today)
+    .sort((a, b) => (a.date + a.part).localeCompare(b.date + b.part));
   if (!list.length || d.status !== '確定') return '';
   return `<div class="card wanted" style="margin-top:10px"><b>🙋 誰か入れる人いませんか</b>
     ${list.map(s => {
