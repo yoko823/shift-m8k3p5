@@ -125,6 +125,12 @@ input.pin{font-size:22px;letter-spacing:6px;width:140px;text-align:center;paddin
   .legend{font-size:8px;margin:1.5mm 0 0}
   @page{size:A4 landscape;margin:6mm}
 }
+/* スマホは横向きの指定を無視して縦で印刷するので、スマホの「印刷する」では表を90度回して縦の用紙1枚に収める */
+@media print{
+  body.rot,body.rot main{overflow:hidden}
+  body.rot .print-area{position:absolute;top:0;left:0;width:280mm;transform-origin:0 0;transform:translateX(196mm) rotate(90deg)}
+}
+
 </style>
 </head>
 <body>
@@ -294,7 +300,7 @@ async function staff() {
   document.querySelector('.bar')?.remove();
   if (S.staffTab === 'wish') wishForm(body);
   else if (S.staffTab === 'mine') body.innerHTML = myShiftHtml();
-  else body.innerHTML = `<div class="card print-area">${monthGridHtml(S.me)}</div>`;
+  else body.innerHTML = `<div class="card print-area">${monthGridHtml(S.me)}<p class="noprint"><button class="btn light" onclick="doPrint()">印刷する</button></p></div>`;
 }
 
 function wantedHtml() {
@@ -402,7 +408,7 @@ function monthGridHtml(me) {
           ${parts.map(p => {
             const ss = slotsOf(day.key, p);
             return `<div class="part ${p}"><div class="ph"><span>${p}</span></div><div class="ls">
-              ${ss.length ? ss.map(s => `<div class="line ${s.name === me ? 'me' : ''} ${s.wanted && !s.name ? 'want' : ''}">
+              ${ss.length ? ss.map(s => `<div class="line ${s.name && s.name === me ? 'me' : ''} ${s.wanted && !s.name ? 'want' : ''}">
                 <span class="nm">${s.wanted && !s.name ? '<span class="oval">募集</span>' : esc(s.name)}${s.order ? ' ' + esc(s.order) : ''}${s.memo ? ' ' + esc(s.memo) : ''}</span>
                 <span>${esc(s.post || '')}</span><span>${esc(s.time || '')}</span></div>`).join('') : '<span class="sub">—</span>'}
             </div></div>`;
@@ -473,7 +479,7 @@ function renderManager() {
   const body = document.getElementById('body');
   if (E.tab === 'view') {
     const saved = S.data; S.data = { ...saved, shifts: flatten(), closed: E.closed };
-    body.innerHTML = `<div class="card print-area">${monthGridHtml('')}<p class="noprint"><button class="btn light" onclick="print()">印刷する</button></p></div>`;
+    body.innerHTML = `<div class="card print-area">${monthGridHtml('')}<p class="noprint"><button class="btn light" onclick="doPrint()">印刷する</button></p></div>`;
     S.data = saved;
   } else if (E.tab === 'sum') {
     const shifts = flatten();
@@ -603,6 +609,20 @@ async function saveShift() {
     if (/暗証番号/.test(e.message)) { S.pin = ''; keepPin(''); }
     alert('保存できませんでした：' + e.message);
   } finally { btn.disabled = false; }
+}
+
+// スマホ（指で操作する端末）は縦の用紙に回して印刷する
+function doPrint() {
+  let st = null;
+  if (matchMedia('(pointer:coarse)').matches) {
+    st = document.createElement('style');
+    st.textContent = '@page{size:A4 portrait;margin:6mm}';
+    document.head.appendChild(st);
+    document.body.classList.add('rot');
+  }
+  const done = () => { if (st) st.remove(); document.body.classList.remove('rot'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  window.print();
 }
 
 window.addEventListener('beforeunload', e => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
